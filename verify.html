@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify certificate</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b2430;--mut:#667085;--ok:#137a3f;--bad:#b42318;--line:#e4e7ec}
+@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1a2029;--ink:#eef1f5;--mut:#98a2b3;--ok:#4ade80;--bad:#f97066;--line:#2a323d}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--ink);display:grid;place-items:center;min-height:100vh;padding:16px}
+main{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px}
+h1{font-size:1.25rem;margin:0 0 16px}
+.status{font-size:1.5rem;font-weight:700;margin:0 0 16px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+dl{margin:0}dt{color:var(--mut);font-size:.85rem;margin-top:12px}dd{margin:0;font-weight:600}
+form{display:flex;gap:8px;margin-top:16px}input{flex:1;padding:10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit;font:inherit}
+button{padding:10px 16px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);font:inherit;cursor:pointer}
+p.note{color:var(--mut);font-size:.85rem;margin-top:20px}
+</style></head><body><main>
+<h1>Certificate verification</h1>
+<div id="out"></div>
+<form id="f"><input id="id" placeholder="CERT-XXXX-XXXX-XXXX" autocomplete="off"><button>Verify</button></form>
+<p class="note">Check that the name above matches the name printed on your certificate.</p>
+</main>
+<script>
+const out=document.getElementById('out'),inp=document.getElementById('id');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function check(id){
+  id=id.trim().toUpperCase();if(!id){out.innerHTML='';return}
+  out.innerHTML='<p>Checking…</p>';
+  try{
+    const reg=await (await fetch('registry.json',{cache:'no-store'})).json();
+    const r=reg[await sha(id)];
+    if(!r){out.innerHTML='<p class="status bad">Not found</p><p>This ID is not in our records. The certificate may be fake.</p>';return}
+    const ok=r.status==='valid';
+    out.innerHTML=`<p class="status ${ok?'ok':'bad'}">${ok?'Valid certificate':'Revoked'}</p><dl>
+    <dt>Holder</dt><dd>${esc(r.name)}</dd><dt>Course</dt><dd>${esc(r.course)}</dd>
+    <dt>Issued</dt><dd>${esc(r.date)}</dd><dt>ID</dt><dd>${esc(id)}</dd></dl>`;
+  }catch(e){out.innerHTML='<p class="status bad">Could not check</p><p>Try again later.</p>'}
+}
+document.getElementById('f').onsubmit=e=>{e.preventDefault();check(inp.value)};
+const q=new URLSearchParams(location.search).get('id');if(q){inp.value=q;check(q)}
+</script></body></html>
