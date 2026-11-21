@@ -14,7 +14,7 @@ form{display:flex;gap:8px;margin-top:16px}input{flex:1;padding:10px;border:1px s
 button{padding:10px 16px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);font:inherit;cursor:pointer}
 p.note{color:var(--mut);font-size:.85rem;margin-top:20px}
 </style></head><body><main>
-<h1>Certificate verification</h1>
+<h1>Certificate Verification</h1>
 <div id="out"></div>
 <form id="f"><input id="id" placeholder="CERT-XXXX-XXXX-XXXX" autocomplete="off"><button>Verify</button></form>
 <p class="note">Check that the name above matches the name printed on your certificate.</p>
@@ -31,8 +31,8 @@ async function check(id){
     const r=reg[await sha(id)];
     if(!r){out.innerHTML='<p class="status bad">Not found</p><p>This ID is not in our records. The certificate may be fake.</p>';return}
     const ok=r.status==='valid';
-    out.innerHTML=`<p class="status ${ok?'ok':'bad'}">${ok?'Valid certificate':'Revoked'}</p><dl>
-    <dt>Holder</dt><dd>${esc(r.name)}</dd><dt>Course</dt><dd>${esc(r.course)}</dd>
+    out.innerHTML=`<p class="status ${ok?'ok':'bad'}">${ok?'Valid Certificate':'Revoked'}</p><dl>
+    <dt>Holder</dt><dd>${esc(r.name)}</dd><dt>Participation</dt><dd>${esc(r.course)}</dd>
     <dt>Issued</dt><dd>${esc(r.date)}</dd><dt>ID</dt><dd>${esc(id)}</dd></dl>`;
   }catch(e){out.innerHTML='<p class="status bad">Could not check</p><p>Try again later.</p>'}
 }
